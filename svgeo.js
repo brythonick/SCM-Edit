@@ -96,8 +96,10 @@ class LayerStack {
     }
 
     pop() {
-        const layer = this.layers.pop();
-        layer.erase();
+        if (this.layers.length > 0) {
+            const layer = this.layers.pop();
+            layer.erase();
+        }
     }
 }
 let layerStack = new LayerStack();
