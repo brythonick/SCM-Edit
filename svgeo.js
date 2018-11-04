@@ -1,17 +1,14 @@
 const margin = 25;
 const canvas = d3.select("svg");
-
-function getXCoordinate() {
-    const canvasSize = $("svg")[0].getBoundingClientRect();
-    return canvasSize.width / 2 - 350;
-}
+let canvasSize = $("svg")[0].getBoundingClientRect();
+window.addEventListener("resize", () => {canvasSize = $("svg")[0].getBoundingClientRect(); layerStack.redrawAll()}, false);
 
 
 class Boundary {
     static flat(x, y) {
         return [
             {"x": x, "y": y},
-            {"x": x + 800, "y": y}
+            {"x": x + canvasSize.width, "y": y}
         ];
     }
 
@@ -42,6 +39,9 @@ class Layer {
     constructor(id) {
         this.id = id;
         this.upperBoundary = null;
+        this.lowerBoundary = null;
+        this.x = null;
+        this.y = null;
         this.draw = this.draw.bind(this);
     }
 
@@ -51,6 +51,9 @@ class Layer {
 
     draw(x, y, upperBoundary, lowerBoundary) {
         this.upperBoundary = upperBoundary;
+        this.lowerBoundary = lowerBoundary;
+        this.x = x;
+        this.y = y;
         let combined = upperBoundary(x, y).concat(lowerBoundary(x, y + 50).reverse());
         canvas.append("path")
             .attr("d", Boundary.toLine(combined) + "Z")
@@ -61,6 +64,11 @@ class Layer {
 
     erase() {
         d3.select("#layer" + this.id).remove();
+    }
+
+    redraw() {
+        this.erase();
+        this.draw(this.x, this.y, this.upperBoundary, this.lowerBoundary);
     }
 }
 
@@ -87,7 +95,7 @@ class LayerStack {
     new() {
         const newLayer = new Layer(this.layers.length);
         newLayer.draw(
-            getXCoordinate(),
+            0,
             this.yCoordinate,
             Boundary.flat,
             this.currentTopBoundary
@@ -100,6 +108,10 @@ class LayerStack {
             const layer = this.layers.pop();
             layer.erase();
         }
+    }
+
+    redrawAll() {
+        this.layers.forEach((layer) => {layer.redraw()})
     }
 }
 let layerStack = new LayerStack();
