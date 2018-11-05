@@ -13,17 +13,13 @@ class Boundary {
     }
 
     static undulating(x, y) {
-        return [
-            {"x": x, "y": y},
-            {"x": x + 100, "y": y + 10},
-            {"x": x + 200, "y": y - 10},
-            {"x": x + 300, "y": y + 10},
-            {"x": x + 400, "y": y - 10},
-            {"x": x + 500, "y": y + 10},
-            {"x": x + 600, "y": y - 10},
-            {"x": x + 700, "y": y + 10},
-            {"x": x + 800, "y": y - 10}
-        ];
+        let lineData = [];
+        for (let i = 0; i <= 10; i += 1) {
+            let undulatingY = (i % 2 === 0 ? y + 10 : y - 10);
+            console.log(i + ": " + undulatingY);
+            lineData.push({"x": i/10.0 * canvasSize.width, "y": undulatingY});
+        }
+        return lineData;
     }
 
     static toLine(data) {
@@ -86,7 +82,7 @@ class LayerStack {
 
     get currentTopBoundary() {
         if (this.layers.length === 0) {
-            return Boundary.flat;
+            return Boundary.undulating;
         } else {
             return this.layers[this.layers.length - 1].boundary;
         }
