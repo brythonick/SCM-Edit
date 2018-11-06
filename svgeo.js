@@ -76,7 +76,6 @@ class Layer {
             .attr("class", "layer " + this.type)
             .attr("id", this.id)
             .attr("pointer-events", "visibleFill");
-        // document.getElementById(this.id).addEventListener("click", () => layerStack.select(this.id), false);
     }
 
     erase() {
