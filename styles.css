@@ -1,12 +1,18 @@
 .layer {
     stroke: black;
-    stroke-width: 0.5pt;
+    stroke-width: 1px;
 }
 
 .limestone {
     fill: lightsteelblue;
 }
+.limestone:hover {
+    fill: powderblue;
+}
 
 .shale {
     fill: darkred;
+}
+.shale:hover {
+    fill: red;
 }

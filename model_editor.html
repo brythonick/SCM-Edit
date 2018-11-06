@@ -15,22 +15,30 @@
 
     <div class="container-fluid h-100">
         <div class="row">
-            <div class="d-flex flex-column bg-dark px-3 py-3">
+            <div class="d-flex flex-column bg-dark px-3 py-3 border-right">
                 <button type="button" class="btn btn-primary mb-2" id="new-limestone">New Limestone</button>
                 <button type="button" class="btn btn-primary mb-2" id="new-shale">New Shale</button>
                 <button type="button" class="btn btn-primary mb-2" disabled>New Drift Layer</button>
                 <span class="flex-fill"></span>
                 <button type="button" class="btn btn-primary" id="pop-layer">Remove Layer</button>
             </div>
-            <div class="col">
-                <svg width="100%" height="500px" class="border">
+            <div class="col p-0">
+                <svg id="canvas" width="100%" height="500px" class="m-2">
                 </svg>
-            </div>
-        </div>
-        <div class="row h-100 flex-grow-1">
-            <div class="col bg-dark">
-                <p>placeholder</p>
-                <span class="flex-fill"></span>
+                <div class="col bg-dark py-2">
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="text-light" for="topBoundary">Top Boundary</label>
+                                <select id="topBoundary" class="form-control">
+                                    <option selected>Flat</option>
+                                    <option>Zigzag</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                    <span class="flex-fill"></span>
+                </div>
             </div>
         </div>
     </div>
