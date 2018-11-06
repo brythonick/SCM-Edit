@@ -34,6 +34,7 @@ class Boundary {
 class Layer {
     constructor(id) {
         this.id = id;
+        this.type = "";
         this.upperBoundary = null;
         this.lowerBoundary = null;
         this.x = null;
@@ -45,7 +46,8 @@ class Layer {
         return this.upperBoundary;
     }
 
-    draw(x, y, upperBoundary, lowerBoundary) {
+    draw(type, x, y, upperBoundary, lowerBoundary) {
+        this.type = type;
         this.upperBoundary = upperBoundary;
         this.lowerBoundary = lowerBoundary;
         this.x = x;
@@ -53,8 +55,7 @@ class Layer {
         let combined = upperBoundary(x, y).concat(lowerBoundary(x, y + 50).reverse());
         canvas.append("path")
             .attr("d", Boundary.toLine(combined) + "Z")
-            .attr("stroke", "none")
-            .attr("fill", "blue")
+            .attr("class", "layer " + this.type)
             .attr("id", "layer" + this.id);
     }
 
@@ -64,7 +65,7 @@ class Layer {
 
     redraw() {
         this.erase();
-        this.draw(this.x, this.y, this.upperBoundary, this.lowerBoundary);
+        this.draw(this.type, this.x, this.y, this.upperBoundary, this.lowerBoundary);
     }
 }
 
@@ -88,9 +89,10 @@ class LayerStack {
         }
     }
 
-    new() {
+    new(type) {
         const newLayer = new Layer(this.layers.length);
         newLayer.draw(
+            type,
             0,
             this.yCoordinate,
             Boundary.flat,
@@ -111,5 +113,6 @@ class LayerStack {
     }
 }
 let layerStack = new LayerStack();
-document.getElementById("new-solid").addEventListener("click", layerStack.new, false);
+document.getElementById("new-limestone").addEventListener("click", () => layerStack.new("limestone"), false);
+document.getElementById("new-shale").addEventListener("click", () => layerStack.new("shale"), false);
 document.getElementById("pop-layer").addEventListener("click", layerStack.pop, false);
