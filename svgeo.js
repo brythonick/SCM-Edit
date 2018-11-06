@@ -12,12 +12,12 @@ class Boundary {
         ];
     }
 
-    static undulating(x, y) {
+    static zigzag(x, y) {
         let lineData = [];
         for (let i = 0; i <= 10; i += 1) {
-            let undulatingY = (i % 2 === 0 ? y + 10 : y - 10);
-            console.log(i + ": " + undulatingY);
-            lineData.push({"x": i/10.0 * canvasSize.width, "y": undulatingY});
+            let zigzagY = (i % 2 === 0 ? y + 10 : y - 10);
+            console.log(i + ": " + zigzagY);
+            lineData.push({"x": i/10.0 * canvasSize.width, "y": zigzagY});
         }
         return lineData;
     }
@@ -83,7 +83,7 @@ class LayerStack {
 
     get currentTopBoundary() {
         if (this.layers.length === 0) {
-            return Boundary.undulating;
+            return Boundary.zigzag;
         } else {
             return this.layers[this.layers.length - 1].boundary;
         }
