@@ -15,10 +15,13 @@ class BoundaryData {
     }
 
     static zigzag(x, y) {
+        const segmentWidth = 50;
+        const numSegments = Math.floor(canvasSize.width / segmentWidth);
+        const remainder = (((canvasSize.width / segmentWidth) - numSegments) / numSegments) * segmentWidth;
         let lineData = [];
-        for (let i = 0; i <= 10; i += 1) {
+        for (let i = 0; i <= numSegments; i += 1) {
             let zigzagY = (i % 2 === 0 ? y + 10 : y - 10);
-            lineData.push({"x": i/10.0 * canvasSize.width, "y": zigzagY});
+            lineData.push({"x": i * (segmentWidth + remainder), "y": zigzagY});
         }
         return lineData;
     }
