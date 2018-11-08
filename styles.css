@@ -3,6 +3,11 @@
     stroke-width: 1px;
 }
 
+.selected {
+    stroke: red;
+    stroke-width: 3px;
+}
+
 .limestone {
     fill: lightsteelblue;
 }

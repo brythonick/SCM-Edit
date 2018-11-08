@@ -150,6 +150,14 @@ class LayerStack {
 
     select(id) {
         this.selected = this.layers.filter(layer => layer.id === id)[0];
+        if (this.selected === undefined) {
+            return;
+        }
+        try {
+            document.getElementsByClassName("selected")[0].classList.remove("selected");
+        } catch (e) {}
+        layerToTop(id);
+        document.getElementById(id).classList.add("selected");
         document.getElementById("topBoundary").value = this.selected.boundary.type;
     }
 
@@ -158,6 +166,13 @@ class LayerStack {
     }
 }
 let layerStack = new LayerStack();
+
+
+function layerToTop(id) {
+    const target = document.getElementById(id);
+    target.parentNode.appendChild(target);
+}
+
 document.getElementById("new-limestone").addEventListener("click", () => layerStack.new("limestone"), false);
 document.getElementById("new-shale").addEventListener("click", () => layerStack.new("shale"), false);
 document.getElementById("pop-layer").addEventListener("click", layerStack.pop, false);
