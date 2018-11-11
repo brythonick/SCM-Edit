@@ -17,11 +17,16 @@
     <div class="container-fluid h-100">
         <div class="row">
             <div class="d-flex flex-column bg-dark px-3 py-3 border-right">
-                <button type="button" class="btn btn-primary mb-2" id="new-limestone">New Limestone</button>
-                <button type="button" class="btn btn-primary mb-2" id="new-shale">New Shale</button>
-                <button type="button" class="btn btn-primary mb-2" disabled>New Drift Layer</button>
+                <h5 class="text-light">New Drift Layer</h5>
+                <button type="button" class="btn btn-primary mb-2 btn-sm" id="new-gravel" disabled>Gravel</button>
+                <button type="button" class="btn btn-primary mb-2 btn-sm" id="new-sand" disabled>Sand</button>
+                <button type="button" class="btn btn-primary mb-2 btn-sm" id="new-silt" disabled>Silt</button>
+                <h5 class="text-light">New Solid Layer</h5>
+                <button type="button" class="btn btn-primary mb-2 btn-sm" id="new-sandstone" disabled>Sandstone</button>
+                <button type="button" class="btn btn-primary mb-2 btn-sm" id="new-limestone">Limestone</button>
+                <button type="button" class="btn btn-primary mb-2 btn-sm" id="new-shale">Shale</button>
                 <span class="flex-fill"></span>
-                <button type="button" class="btn btn-primary" id="pop-layer">Remove Layer</button>
+                <button type="button" class="btn btn-danger btn-sm" id="pop-layer">Remove Layer</button>
             </div>
             <div class="col p-0">
                 <div class="col ml-auto pt-1">
@@ -38,7 +43,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="text-light" for="topBoundary">Top Boundary</label>
-                                <select id="topBoundary" class="form-control">
+                                <select id="topBoundary" class="form-control form-control-sm">
                                     <option selected>Flat</option>
                                     <option>Zigzag</option>
                                 </select>
@@ -51,13 +56,13 @@
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Model Settings</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
