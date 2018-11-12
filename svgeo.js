@@ -161,7 +161,7 @@ class LayerStack {
         layerToTop(id);
         $("#" + id).addClass("selected");
         $("#remove-layer").prop("disabled", false);
-        $("#topBoundary").val(this.selected.boundary.type);
+        upperBoundary.val(this.selected.boundary.type);
     }
 
     deselect() {
@@ -204,8 +204,8 @@ function layerToTop(id) {
 $("#new-limestone").click(() => layerStack.new("limestone"));
 $("#new-shale").click(() => layerStack.new("shale"));
 $("#remove-layer").click(layerStack.removeSelected);
-const topBoundary = $("#topBoundary");
-topBoundary.change(() => layerStack.selected.setUpperBoundary(topBoundary.val()));
+const upperBoundary = $("#upper-boundary");
+upperBoundary.change(() => layerStack.selected.setUpperBoundary(upperBoundary.val()));
 
 $(document).keyup((b) => {
     if (b.key === "Escape") {
