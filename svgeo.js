@@ -3,7 +3,7 @@ const canvas = d3.select("svg");
 let canvasSize = $("svg")[0].getBoundingClientRect();
 
 window.addEventListener("resize", () => {canvasSize = $("svg")[0].getBoundingClientRect(); layerStack.redrawAll()}, false);
-document.getElementById("canvas").addEventListener("mouseup", (e) => layerStack.select(e.target.id), false);
+$("#canvas").click((e) => layerStack.select(e.target.id));
 
 
 class BoundaryData {
@@ -156,18 +156,18 @@ class LayerStack {
             return;
         }
         try {
-            document.getElementsByClassName("selected")[0].classList.remove("selected");
+            $(".selected").removeClass("selected");
         } catch (e) {}
         layerToTop(id);
-        document.getElementById(id).classList.add("selected");
+        $("#" + id).addClass("selected");
         $("#remove-layer").prop("disabled", false);
-        document.getElementById("topBoundary").value = this.selected.boundary.type;
+        $("#topBoundary").val(this.selected.boundary.type);
     }
 
     deselect() {
         if (this.selected !== undefined) {
             try {
-                document.getElementsByClassName("selected")[0].classList.remove("selected");
+                $(".selected").removeClass("selected");
             } catch (e) {}
             $("#remove-layer").prop("disabled", true);
         }
@@ -201,11 +201,11 @@ function layerToTop(id) {
     target.parentNode.appendChild(target);
 }
 
-document.getElementById("new-limestone").addEventListener("click", () => layerStack.new("limestone"), false);
-document.getElementById("new-shale").addEventListener("click", () => layerStack.new("shale"), false);
-document.getElementById("remove-layer").addEventListener("click", layerStack.removeSelected, false);
-
-document.getElementById("topBoundary").addEventListener("change", () => layerStack.selected.setUpperBoundary(document.getElementById("topBoundary").value), false);
+$("#new-limestone").click(() => layerStack.new("limestone"));
+$("#new-shale").click(() => layerStack.new("shale"));
+$("#remove-layer").click(layerStack.removeSelected);
+const topBoundary = $("#topBoundary");
+topBoundary.change(() => layerStack.selected.setUpperBoundary(topBoundary.val()));
 
 $(document).keyup((b) => {
     if (b.key === "Escape") {
