@@ -90,10 +90,11 @@ class Layer {
         layerStack.redrawAll();
     }
 
-    redraw() {
+    redraw(index, y) {
+        this.id = "layer" + index;
         this.erase();
         this.lowerBoundary = layerStack.getBoundaryBelow(this.id);
-        this.draw(this.type, this.x, this.y, this.upperBoundary, this.lowerBoundary);
+        this.draw(this.type, this.x, y, this.upperBoundary, this.lowerBoundary);
     }
 }
 
@@ -105,6 +106,7 @@ class LayerStack {
         this.new = this.new.bind(this);
         this.pop = this.pop.bind(this);
         this.select = this.select.bind(this);
+        this.removeSelected = this.removeSelected.bind(this);
     }
 
     get yCoordinate() {
@@ -158,11 +160,37 @@ class LayerStack {
         } catch (e) {}
         layerToTop(id);
         document.getElementById(id).classList.add("selected");
+        $("#remove-layer").prop("disabled", false);
         document.getElementById("topBoundary").value = this.selected.boundary.type;
     }
 
+    deselect() {
+        if (this.selected !== undefined) {
+            try {
+                document.getElementsByClassName("selected")[0].classList.remove("selected");
+            } catch (e) {}
+            $("#remove-layer").prop("disabled", true);
+        }
+    }
+
+    removeSelected() {
+        this.deselect();
+        this.eraseAll();
+        this.layers.splice(this.layers.indexOf(this.selected), 1);
+        this.selected = undefined;
+        this.redrawAll();
+    }
+
+    eraseAll() {
+        this.layers.forEach((layer) => layer.erase());
+    }
+
     redrawAll() {
-        this.layers.forEach((layer) => {layer.redraw()})
+        this.layers.forEach((layer) => {
+            const index = this.layers.indexOf(layer);
+            const newYCoordinate = 500 - margin - 50 - index * 50;
+            layer.redraw(index, newYCoordinate);
+        })
     }
 }
 let layerStack = new LayerStack();
@@ -175,6 +203,12 @@ function layerToTop(id) {
 
 document.getElementById("new-limestone").addEventListener("click", () => layerStack.new("limestone"), false);
 document.getElementById("new-shale").addEventListener("click", () => layerStack.new("shale"), false);
-document.getElementById("pop-layer").addEventListener("click", layerStack.pop, false);
+document.getElementById("remove-layer").addEventListener("click", layerStack.removeSelected, false);
 
 document.getElementById("topBoundary").addEventListener("change", () => layerStack.selected.setUpperBoundary(document.getElementById("topBoundary").value), false);
+
+$(document).keyup((b) => {
+    if (b.key === "Escape") {
+        layerStack.deselect();
+    }
+});
