@@ -2,7 +2,7 @@ const margin = 25;
 const canvas = d3.select("svg");
 let canvasSize = $("svg")[0].getBoundingClientRect();
 
-window.addEventListener("resize", () => {canvasSize = $("svg")[0].getBoundingClientRect(); layerStack.redrawAll()}, false);
+$(window).resize(() => {canvasSize = $("svg")[0].getBoundingClientRect(); layerStack.redrawAll()});
 $("#canvas").click((e) => layerStack.select(e.target.id));
 
 
