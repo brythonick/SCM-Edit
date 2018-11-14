@@ -1,23 +1,60 @@
-const margin = 25;
-const canvas = d3.select("svg");
-let canvasSize = $("svg")[0].getBoundingClientRect();
-
-$(window).resize(() => {canvasSize = $("svg")[0].getBoundingClientRect(); layerStack.redrawAll()});
 $("#canvas").click((e) => layerStack.select(e.target.id));
 
 
+class Draw {
+    constructor() {
+        this.margin = 25;
+        this.canvas = $("svg");
+        this.d3Canvas = d3.select("svg");
+        this.canvasWidth = this.canvas.width() - this.margin;
+        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin; this.redraw()});
+    }
+
+    coords(lyr) {
+        let totalThickness = this.margin + lyr.thickness;
+        lyr.below.forEach((l) => {totalThickness += l.thickness});
+        return {"x": this.margin, "y": 500 - totalThickness};
+    }
+
+    layer(lyr) {
+        const coords = this.coords(lyr);
+        const combined = lyr.upperBoundary
+            .data(coords.x, coords.y, this.canvasWidth - this.margin)
+            .concat(lyr.lowerBoundary.data(coords.x, coords.y + lyr.thickness, this.canvasWidth - this.margin).reverse());
+        this.d3Canvas.append("path")
+            .attr("d", BoundaryData.toLine(combined) + "Z")
+            .attr("class", "layer " + lyr.type)
+            .attr("id", lyr.id)
+            .attr("pointer-events", "visibleFill");
+    }
+
+    erase(lyr) {
+        this.d3Canvas.select("#" + lyr.id).remove();
+    }
+
+    redraw() {
+        layerStack.layers.forEach((l) => {
+            this.erase(l);
+            this.layer(l);
+        });
+    }
+
+}
+const drawObject = new Draw();
+
+
 class BoundaryData {
-    static flat(x, y) {
+    static flat(x, y, canvasWidth) {
         return [
             {"x": x, "y": y},
-            {"x": x + canvasSize.width, "y": y}
+            {"x": x + canvasWidth, "y": y}
         ];
     }
 
-    static zigzag(x, y) {
+    static zigzag(x, y, canvasWidth) {
         const segmentWidth = 50;
-        const numSegments = Math.floor(canvasSize.width / segmentWidth);
-        const remainder = (((canvasSize.width / segmentWidth) - numSegments) / numSegments) * segmentWidth;
+        const numSegments = Math.floor(canvasWidth.width / segmentWidth);
+        const remainder = (((canvasWidth.width / segmentWidth) - numSegments) / numSegments) * segmentWidth;
         let lineData = [];
         for (let i = 0; i <= numSegments; i += 1) {
             let zigzagY = (i % 2 === 0 ? y + 10 : y - 10);
@@ -41,60 +78,29 @@ class Boundary {
         this.data = this.data.bind(this);
     }
 
-    data(x, y) {
+    data(x, y, canvasWidth) {
         switch (this.type) {
             case "Flat":
-                return BoundaryData.flat(x, y);
+                return BoundaryData.flat(x, y, canvasWidth);
             case "Zigzag":
-                return BoundaryData.zigzag(x, y);
+                return BoundaryData.zigzag(x, y, canvasWidth);
         }
     }
 }
 
 
 class Layer {
-    constructor(id) {
+    constructor(id, type, layersBelow) {
         this.id = id;
-        this.type = "";
-        this.upperBoundary = null;
-        this.lowerBoundary = null;
-        this.x = null;
-        this.y = null;
-        this.draw = this.draw.bind(this);
-    }
-
-    get boundary() {
-        return this.upperBoundary;
-    }
-
-    draw(type, x, y, upperBoundary, lowerBoundary) {
         this.type = type;
-        this.upperBoundary = upperBoundary;
-        this.lowerBoundary = lowerBoundary;
-        this.x = x;
-        this.y = y;
-        let combined = upperBoundary.data(x, y).concat(lowerBoundary.data(x, y + 50).reverse());
-        canvas.append("path")
-            .attr("d", BoundaryData.toLine(combined) + "Z")
-            .attr("class", "layer " + this.type)
-            .attr("id", this.id)
-            .attr("pointer-events", "visibleFill");
-    }
-
-    erase() {
-        d3.select("#" + this.id).remove();
+        this.below = layersBelow;
+        this.thickness = 50;
+        this.upperBoundary = new Boundary("Flat");
+        this.lowerBoundary = this.below[this.below.length - 1].upperBoundary;
     }
 
     setUpperBoundary(type) {
         this.upperBoundary = new Boundary(type);
-        layerStack.redrawAll();
-    }
-
-    redraw(index, y) {
-        this.id = "layer" + index;
-        this.erase();
-        this.lowerBoundary = layerStack.getBoundaryBelow(this.id);
-        this.draw(this.type, this.x, y, this.upperBoundary, this.lowerBoundary);
     }
 }
 
@@ -104,50 +110,20 @@ class LayerStack {
         this.layers = [];
         this.selected = null;
         this.new = this.new.bind(this);
-        this.pop = this.pop.bind(this);
         this.select = this.select.bind(this);
         this.removeSelected = this.removeSelected.bind(this);
     }
 
-    get yCoordinate() {
-        return 500 - margin - 50 - this.layers.length * 50;
-    }
-
-    get currentTopBoundary() {
-        if (this.layers.length === 0) {
-            return new Boundary("Flat");
-        } else {
-            return this.layers[this.layers.length - 1].boundary;
-        }
-    }
-
-    getBoundaryBelow(id) {
-        const upperLayer = this.layers.filter(layer => layer.id === id)[0];
-        const index = this.layers.indexOf(upperLayer);
-        if (index === 0) {
-            return upperLayer.lowerBoundary;
-        } else {
-            return this.layers[index - 1].boundary;
-        }
-    }
-
     new(type) {
-        const newLayer = new Layer("layer" + this.layers.length);
-        newLayer.draw(
-            type,
-            0,
-            this.yCoordinate,
-            new Boundary("Flat"),
-            this.currentTopBoundary
-        );
-        this.layers.push(newLayer);
-    }
-
-    pop() {
-        if (this.layers.length > 0) {
-            const layer = this.layers.pop();
-            layer.erase();
+        let below = [];
+        if (this.layers.length === 0) {
+            below = [{"upperBoundary": new Boundary("Flat"), "thickness": 0}];
+        } else {
+            this.layers.forEach((l) => {below.push({"upperBoundary": l.upperBoundary, "thickness": l.thickness});});
         }
+        const newLayer = new Layer("layer" + this.layers.length, type, below);
+        drawObject.layer(newLayer);
+        this.layers.push(newLayer);
     }
 
     select(id) {
@@ -179,18 +155,6 @@ class LayerStack {
         this.layers.splice(this.layers.indexOf(this.selected), 1);
         this.selected = undefined;
         this.redrawAll();
-    }
-
-    eraseAll() {
-        this.layers.forEach((layer) => layer.erase());
-    }
-
-    redrawAll() {
-        this.layers.forEach((layer) => {
-            const index = this.layers.indexOf(layer);
-            const newYCoordinate = 500 - margin - 50 - index * 50;
-            layer.redraw(index, newYCoordinate);
-        })
     }
 }
 let layerStack = new LayerStack();
