@@ -1,4 +1,4 @@
-$("#canvas").click((e) => layerStack.select(e.target.id));
+$("#canvas").click((e) => selection.select(e.target.id));
 
 
 class Draw {
@@ -7,7 +7,7 @@ class Draw {
         this.canvas = $("svg");
         this.d3Canvas = d3.select("svg");
         this.canvasWidth = this.canvas.width() - this.margin;
-        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin; this.redraw()});
+        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin; this.stack()});
     }
 
     coords(lyr) {
@@ -32,11 +32,16 @@ class Draw {
         this.d3Canvas.select("#" + lyr.id).remove();
     }
 
-    redraw() {
+    stack() {
         layerStack.layers.forEach((l) => {
             this.erase(l);
             this.layer(l);
         });
+    }
+
+    static toFront(id) {
+        const element = $("#" + id);
+        element.parent().append(element);
     }
 
 }
@@ -109,9 +114,11 @@ class LayerStack {
     constructor() {
         this.layers = [];
         this.selected = null;
-        this.new = this.new.bind(this);
-        this.select = this.select.bind(this);
-        this.removeSelected = this.removeSelected.bind(this);
+        // this.new = this.new.bind(this);
+    }
+
+    get(id) {
+        return this.layers.filter(l => l.id === id)[0];
     }
 
     new(type) {
@@ -126,53 +133,79 @@ class LayerStack {
         this.layers.push(newLayer);
     }
 
-    select(id) {
-        this.selected = this.layers.filter(layer => layer.id === id)[0];
-        if (this.selected === undefined) {
-            return;
-        }
-        try {
-            $(".selected").removeClass("selected");
-        } catch (e) {}
-        layerToTop(id);
-        $("#" + id).addClass("selected");
-        $("#remove-layer").prop("disabled", false);
-        upperBoundary.val(this.selected.boundary.type);
+    remove(lyr) {
+        drawObject.erase(lyr);
+        this.layers.splice(this.layers.indexOf(lyr), 1);
+        this.layers.forEach((l) => {
+            drawObject.erase(l);
+            l.id = "layer" + this.layers.indexOf(l);
+            this.updateBelow(l);
+            drawObject.layer(l);
+        });
     }
 
-    deselect() {
-        if (this.selected !== undefined) {
-            try {
-                $(".selected").removeClass("selected");
-            } catch (e) {}
-            $("#remove-layer").prop("disabled", true);
+    updateBelow(lyr) {
+        lyr.below = [];
+        if (this.layers.length === 0) {
+            lyr.below.push({"upperBoundary": new Boundary("Flat"), "thickness": 0});
+        } else {
+            this.layers.slice(0, this.layers.indexOf(lyr)).forEach((l) => {
+                lyr.below.push({"upperBoundary": l.upperBoundary, "thickness": l.thickness})
+            });
         }
-    }
-
-    removeSelected() {
-        this.deselect();
-        this.eraseAll();
-        this.layers.splice(this.layers.indexOf(this.selected), 1);
-        this.selected = undefined;
-        this.redrawAll();
     }
 }
 let layerStack = new LayerStack();
 
 
-function layerToTop(id) {
-    const target = document.getElementById(id);
-    target.parentNode.appendChild(target);
+class Selection {
+    constructor() {
+        this.layer = undefined;
+        this.select = this.select.bind(this);
+        this.deselect = this.deselect.bind(this);
+        this.remove = this.remove.bind(this);
+    }
+
+    select(id) {
+        this.layer = layerStack.get(id);
+        if (this.layer === undefined) {
+            return;
+        }
+        try {
+            $(".selected").removeClass("selected");
+        } catch (e) {}
+        Draw.toFront(this.layer.id);
+        $("#" + id).addClass("selected");
+        $("#remove-layer").prop("disabled", false);
+        upperBoundary.val(this.layer.upperBoundary.type);
+    }
+
+    deselect() {
+        if (this.layer !== undefined) {
+            try {
+                $(".selected").removeClass("selected");
+            } catch (e) {}
+            $("#remove-layer").prop("disabled", true);
+        }
+        this.layer = undefined;
+    }
+
+    remove() {
+        layerStack.remove(this.layer);
+        this.deselect();
+        this.layer = undefined;
+    }
 }
+const selection = new Selection();
 
 $("#new-limestone").click(() => layerStack.new("limestone"));
 $("#new-shale").click(() => layerStack.new("shale"));
-$("#remove-layer").click(layerStack.removeSelected);
+$("#remove-layer").click(selection.remove);
 const upperBoundary = $("#upper-boundary");
-upperBoundary.change(() => layerStack.selected.setUpperBoundary(upperBoundary.val()));
+upperBoundary.change(() => selection.selected.setUpperBoundary(upperBoundary.val()));
 
 $(document).keyup((b) => {
     if (b.key === "Escape") {
-        layerStack.deselect();
+        selection.deselect();
     }
 });
