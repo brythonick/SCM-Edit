@@ -6,8 +6,8 @@ class Draw {
         this.margin = 25;
         this.canvas = $("svg");
         this.d3Canvas = d3.select("svg");
-        this.canvasWidth = this.canvas.width() - this.margin;
-        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin; this.stack()});
+        this.canvasWidth = this.canvas.width() - this.margin * 2;
+        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin * 2; this.stack()});
     }
 
     coords(lyr) {
@@ -19,8 +19,8 @@ class Draw {
     layer(lyr) {
         const coords = this.coords(lyr);
         const combined = lyr.upperBoundary
-            .data(coords.x, coords.y, this.canvasWidth - this.margin)
-            .concat(lyr.lowerBoundary.data(coords.x, coords.y + lyr.thickness, this.canvasWidth - this.margin).reverse());
+            .data(coords.x, coords.y, this.canvasWidth)
+            .concat(lyr.lowerBoundary.data(coords.x, coords.y + lyr.thickness, this.canvasWidth).reverse());
         this.d3Canvas.append("path")
             .attr("d", BoundaryData.toLine(combined) + "Z")
             .attr("class", "layer " + lyr.type)
@@ -33,6 +33,7 @@ class Draw {
     }
 
     stack() {
+        selection.deselect();
         layerStack.layers.forEach((l) => {
             this.erase(l);
             this.layer(l);
@@ -58,12 +59,12 @@ class BoundaryData {
 
     static zigzag(x, y, canvasWidth) {
         const segmentWidth = 50;
-        const numSegments = Math.floor(canvasWidth.width / segmentWidth);
-        const remainder = (((canvasWidth.width / segmentWidth) - numSegments) / numSegments) * segmentWidth;
+        const numSegments = Math.floor(canvasWidth / segmentWidth);
+        const remainder = (((canvasWidth / segmentWidth) - numSegments) / numSegments) * segmentWidth;
         let lineData = [];
         for (let i = 0; i <= numSegments; i += 1) {
             let zigzagY = (i % 2 === 0 ? y + 10 : y - 10);
-            lineData.push({"x": i * (segmentWidth + remainder), "y": zigzagY});
+            lineData.push({"x": x + i * (segmentWidth + remainder), "y": zigzagY});
         }
         return lineData;
     }
@@ -102,10 +103,24 @@ class Layer {
         this.thickness = 50;
         this.upperBoundary = new Boundary("Flat");
         this.lowerBoundary = this.below[this.below.length - 1].upperBoundary;
+        this.setLowerBoundary = this.setLowerBoundary.bind(this);
+        this.refreshLowerBoundary = this.refreshLowerBoundary.bind(this);
     }
 
     setUpperBoundary(type) {
         this.upperBoundary = new Boundary(type);
+        layerStack.updateAbove(this);
+        drawObject.stack();
+    }
+
+    setLowerBoundary(type) {
+        this.lowerBoundary = new Boundary(type);
+    }
+
+    refreshLowerBoundary() {
+        if (this.below[0].thickness !== 0) {
+            this.lowerBoundary = this.below[this.below.length - 1].upperBoundary;
+        }
     }
 }
 
@@ -113,8 +128,11 @@ class Layer {
 class LayerStack {
     constructor() {
         this.layers = [];
-        this.selected = null;
-        // this.new = this.new.bind(this);
+        this.get = this.get.bind(this);
+        this.new = this.new.bind(this);
+        this.remove = this.remove.bind(this);
+        this.updateAbove = this.updateAbove.bind(this);
+        this.updateBelow = this.updateBelow.bind(this);
     }
 
     get(id) {
@@ -140,18 +158,27 @@ class LayerStack {
             drawObject.erase(l);
             l.id = "layer" + this.layers.indexOf(l);
             this.updateBelow(l);
+            l.refreshLowerBoundary();
             drawObject.layer(l);
         });
     }
 
     updateBelow(lyr) {
         lyr.below = [];
-        if (this.layers.length === 0) {
+        if (this.layers.indexOf(lyr) === 0) {
             lyr.below.push({"upperBoundary": new Boundary("Flat"), "thickness": 0});
         } else {
             this.layers.slice(0, this.layers.indexOf(lyr)).forEach((l) => {
                 lyr.below.push({"upperBoundary": l.upperBoundary, "thickness": l.thickness})
             });
+        }
+    }
+
+    updateAbove(lyr) {
+        const lowerIndex = this.layers.indexOf(lyr);
+        if (lowerIndex < this.layers.length - 1) {
+            let layerAbove = this.get("layer" + (lowerIndex + 1));
+            layerAbove.setLowerBoundary(lyr.upperBoundary.type);
         }
     }
 }
@@ -202,7 +229,7 @@ $("#new-limestone").click(() => layerStack.new("limestone"));
 $("#new-shale").click(() => layerStack.new("shale"));
 $("#remove-layer").click(selection.remove);
 const upperBoundary = $("#upper-boundary");
-upperBoundary.change(() => selection.selected.setUpperBoundary(upperBoundary.val()));
+upperBoundary.change(() => selection.layer.setUpperBoundary(upperBoundary.val()));
 
 $(document).keyup((b) => {
     if (b.key === "Escape") {
