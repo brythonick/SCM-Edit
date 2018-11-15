@@ -1,6 +1,3 @@
-$("#canvas").click((e) => selection.select(e.target.id));
-
-
 class Draw {
     constructor() {
         this.margin = 25;
@@ -109,7 +106,7 @@ class Layer {
 
     setUpperBoundary(type) {
         this.upperBoundary = new Boundary(type);
-        layerStack.updateAbove(this);
+        layerStack.setSharedBoundary(this);
         drawObject.stack();
     }
 
@@ -118,9 +115,7 @@ class Layer {
     }
 
     refreshLowerBoundary() {
-        if (this.below[0].thickness !== 0) {
-            this.lowerBoundary = this.below[this.below.length - 1].upperBoundary;
-        }
+        this.lowerBoundary = this.below[this.below.length - 1].upperBoundary;
     }
 }
 
@@ -131,7 +126,7 @@ class LayerStack {
         this.get = this.get.bind(this);
         this.new = this.new.bind(this);
         this.remove = this.remove.bind(this);
-        this.updateAbove = this.updateAbove.bind(this);
+        this.setSharedBoundary = this.setSharedBoundary.bind(this);
         this.updateBelow = this.updateBelow.bind(this);
     }
 
@@ -158,7 +153,6 @@ class LayerStack {
             drawObject.erase(l);
             l.id = "layer" + this.layers.indexOf(l);
             this.updateBelow(l);
-            l.refreshLowerBoundary();
             drawObject.layer(l);
         });
     }
@@ -172,9 +166,10 @@ class LayerStack {
                 lyr.below.push({"upperBoundary": l.upperBoundary, "thickness": l.thickness})
             });
         }
+        lyr.refreshLowerBoundary();
     }
 
-    updateAbove(lyr) {
+    setSharedBoundary(lyr) {
         const lowerIndex = this.layers.indexOf(lyr);
         if (lowerIndex < this.layers.length - 1) {
             let layerAbove = this.get("layer" + (lowerIndex + 1));
@@ -225,6 +220,7 @@ class Selection {
 }
 const selection = new Selection();
 
+$("#canvas").click((e) => selection.select(e.target.id));
 $("#new-limestone").click(() => layerStack.new("limestone"));
 $("#new-shale").click(() => layerStack.new("shale"));
 $("#remove-layer").click(selection.remove);
