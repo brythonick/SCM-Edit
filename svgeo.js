@@ -30,11 +30,11 @@ class Draw {
     }
 
     stack() {
-        selection.deselect();
         layerStack.layers.forEach((l) => {
             this.erase(l);
             this.layer(l);
         });
+        selection.select(selection.layer.id);
     }
 
     static toFront(id) {
