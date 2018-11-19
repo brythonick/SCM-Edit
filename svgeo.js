@@ -30,11 +30,16 @@ class Draw {
     }
 
     stack() {
+        let selectedId = undefined;
         layerStack.layers.forEach((l) => {
             this.erase(l);
             this.layer(l);
+            if (l === selection.layer) {
+                selection.select(l.id);
+                selectedId = l.id;
+            }
         });
-        selection.select(selection.layer.id);
+        Draw.toFront(selectedId);
     }
 
     static toFront(id) {
@@ -189,10 +194,10 @@ class Selection {
     }
 
     select(id) {
-        this.layer = layerStack.get(id);
-        if (this.layer === undefined) {
+        if (!id.includes("layer")) {
             return;
         }
+        this.layer = layerStack.get(id);
         try {
             $(".selected").removeClass("selected");
         } catch (e) {}
