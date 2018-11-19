@@ -199,7 +199,7 @@ class Selection {
         Draw.toFront(this.layer.id);
         $("#" + id).addClass("selected");
         $("#remove-layer").prop("disabled", false);
-        upperBoundary.val(this.layer.upperBoundary.type);
+        upperBoundary.val(this.layer.upperBoundary.type).attr("disabled", false);
     }
 
     deselect() {
@@ -210,6 +210,7 @@ class Selection {
             $("#remove-layer").prop("disabled", true);
         }
         this.layer = undefined;
+        upperBoundary.val("-").attr("disabled", true);
     }
 
     remove() {
