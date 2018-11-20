@@ -21,3 +21,9 @@
 .shale:hover {
     fill: red;
 }
+
+.scale {
+    stroke: black;
+    stroke-width: 3px;
+    stroke-linecap: square;
+}

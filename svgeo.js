@@ -4,7 +4,8 @@ class Draw {
         this.canvas = $("svg");
         this.d3Canvas = d3.select("svg");
         this.canvasWidth = this.canvas.width() - this.margin * 2;
-        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin * 2; this.stack()});
+        $(window).resize(() => {this.canvasWidth = this.canvas.width() - this.margin * 2; this.stack(); this.scale()});
+        this.scale();
     }
 
     coords(lyr) {
@@ -23,6 +24,81 @@ class Draw {
             .attr("class", "layer " + lyr.type)
             .attr("id", lyr.id)
             .attr("pointer-events", "visibleFill");
+        Draw.toFront("x-scale");
+        Draw.toFront("y-scale");
+    }
+
+    scale() {
+        this.d3Canvas.select("#x-scale").remove();
+        this.d3Canvas.selectAll("#x-scale-tick").remove();
+        this.d3Canvas.select("#y-scale").remove();
+        this.d3Canvas.selectAll("#y-scale-tick").remove();
+        const xTickSep = this.canvasWidth / 10;
+        const yTickNum = Math.floor(425 / xTickSep);
+        this.d3Canvas.append("path")
+            .attr("d", this.xScaleLine())
+            .attr("class", "scale")
+            .attr("id", "x-scale");
+        this.d3Canvas.append("path")
+            .attr("d", this.yScaleLine(xTickSep * yTickNum))
+            .attr("class", "scale")
+            .attr("id", "y-scale");
+        for (let i = 0; i <= 10; i += 1) {
+            this.d3Canvas.append("path")
+                .attr("d", this.xTickLine(i * xTickSep))
+                .attr("class", "scale")
+                .attr("id", "x-scale-tick");
+        }
+        for (let i = 475; i > this.margin * 2; i -= xTickSep) {
+            this.d3Canvas.append("path")
+                .attr("d", this.yTickLine(i))
+                .attr("class", "scale")
+                .attr("id", "y-scale-tick");
+        }
+    }
+
+    xScaleLine() {
+        const data = [
+            {"x": this.margin, "y": 475},
+            {"x": this.canvasWidth + this.margin, "y": 475},
+        ];
+        const line = d3.line()
+            .x((d) => {return d.x;})
+            .y((d) => {return d.y;});
+        return line(data);
+    }
+
+    xTickLine(x) {
+        const data = [
+            {"x": this.margin + x, "y": 475},
+            {"x": this.margin + x, "y": 480},
+        ];
+        const line = d3.line()
+            .x((d) => {return d.x;})
+            .y((d) => {return d.y;});
+        return line(data);
+    }
+
+    yScaleLine(length) {
+        const data = [
+            {"x": this.margin, "y": 475},
+            {"x": this.margin, "y": 475 - length},
+        ];
+        const line = d3.line()
+            .x((d) => {return d.x;})
+            .y((d) => {return d.y;});
+        return line(data);
+    }
+
+    yTickLine(y) {
+        const data = [
+            {"x": this.margin, "y": y},
+            {"x": this.margin - 5, "y": y},
+        ];
+        const line = d3.line()
+            .x((d) => {return d.x;})
+            .y((d) => {return d.y;});
+        return line(data);
     }
 
     erase(lyr) {
@@ -216,6 +292,8 @@ class Selection {
         }
         this.layer = undefined;
         upperBoundary.val("-").attr("disabled", true);
+        Draw.toFront("x-scale");
+        Draw.toFront("y-scale");
     }
 
     remove() {
