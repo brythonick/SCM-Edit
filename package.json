@@ -1,0 +1,31 @@
+{
+  "name": "svgeo",
+  "version": "0.0.1",
+  "description": "Draw geological layers with SVG for a site conceptual model",
+  "main": "app.js",
+  "dependencies": {
+    "@types/d3-selection": "^1.3.4",
+    "@types/jquery": "^3.3.22",
+    "d3-line": "0.0.1",
+    "d3-selection": "^1.3.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brythonick/SCM-Edit.git"
+  },
+  "keywords": [
+    "geoscience",
+    "scm",
+    "svg"
+  ],
+  "author": "Nick Farnham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brythonick/SCM-Edit/issues"
+  },
+  "homepage": "https://github.com/brythonick/SCM-Edit#readme"
+}
